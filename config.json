@@ -25,7 +25,7 @@
                     "args": {
                         "part": "train",
                         "max_audio_length": 8192,
-                        "data_dir": "/kaggle/input/ljspeech/"
+                        "data_dir": "/kaggle/input/ljspeech/wavs"
                     }
                 }
             ]
