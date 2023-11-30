@@ -55,15 +55,15 @@
         "args": {}
     },
     "gen_lr_scheduler": {
-        "type": "MultiStepLR",
+        "type": "ExponentialLR",
         "args": {
-            "gamma": 0.5
+            "gamma": 0.999
         }
     },
     "desc_lr_scheduler": {
-        "type": "MultiStepLR",
+        "type": "ExponentialLR",
         "args": {
-            "gamma": 0.5
+            "gamma": 0.999
         }
     },
     "trainer": {
