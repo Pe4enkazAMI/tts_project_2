@@ -17,17 +17,17 @@ class Generator(nn.Module):
         current_channels = hidden_channels
         for i in range(len(upsample_kernels)):
             upsample_block = nn.ConvTranspose1d(current_channels,
-                                          current_channels >> 1,
+                                          current_channels // 2,
                                           upsample_kernels[i],
                                           upsample_stride[i],
-                                          padding=(upsample_kernels[i] - upsample_stride[i]) >> 1)
-            mrf_block = MRF(current_channels >> 1,
+                                          padding=(upsample_kernels[i] - upsample_stride[i]) // 2)
+            mrf_block = MRF(current_channels // 2,
                       resblock_kernels,
                       resblock_dilations)
             block = nn.Sequential(upsample_block, mrf_block)
             blocks.append(block)
 
-            current_channels = current_channels >> 1
+            current_channels = current_channels // 2
 
         self.blocks = nn.Sequential(*blocks)
 
@@ -42,4 +42,5 @@ class Generator(nn.Module):
         mel = self.in_proj(mel)
         mel = self.blocks(mel)
         audio = self.out_proj(mel)
+        print(audio)
         return {"pred_audio": audio}
