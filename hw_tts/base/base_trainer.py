@@ -25,8 +25,8 @@ class BaseTrainer:
         self.gen_scheduler = gen_lr_shceduler
         self.desc_scheduler = desc_lr_shceduler
         self.model = model
-        self.gen_criterion = gen_criterion
-        self.desc_criterion = desc_criterion
+        self.gen_loss = gen_criterion
+        self.desc_loss = desc_criterion
         self.gen_optimizer = gen_optimizer
         self.desc_optimizer = desc_optimizer
 
@@ -137,7 +137,7 @@ class BaseTrainer:
                     )
                     break
 
-            if epoch % self.save_period == 0 or best:
+            if epoch % self.save_period == 0:
                 ckpt_path = self._save_checkpoint(epoch, save_best=best, only_best=True)
                 artifact_tag = "best" if best else "ckpt"
                 self.writer.add_ckpt(f'{self.config["name"]}_{artifact_tag}', ckpt_path)

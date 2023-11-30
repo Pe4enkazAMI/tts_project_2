@@ -59,8 +59,7 @@ class Trainer(BaseTrainer):
         self.desc_lr_scheduler = desc_lr_scheduler
         self.log_step = self.config["trainer"].get("log_step", 50)
         self.batch_accum_steps = self.config["trainer"].get("batch_accum_steps", 1)
-        
-        
+        self.loss_keys = ["GenLoss", "DescLoss", "AdversarialLoss", "FeatureMatchingLoss", "MelLoss"]
         
 
         self.train_metrics = MetricTracker(
@@ -104,9 +103,7 @@ class Trainer(BaseTrainer):
                 batch = self.process_batch(
                         batch,
                         is_train=True,
-                        metrics=self.train_metrics,
-                        index=batch_idx,
-                        total=self.len_epoch,
+                        metrics=self.train_metrics
                 )
             except RuntimeError as e:
                 if "out of memory" in str(e) and self.skip_oom:
@@ -152,51 +149,38 @@ class Trainer(BaseTrainer):
 
         return log
     
-    def process_batch(self, batch, is_train: bool, metrics: MetricTracker,
-                      index: Optional[int] = None, total: Optional[int] = None):
+    def process_batch(self, batch, is_train: bool, metrics: MetricTracker):
         batch = self.move_batch_to_device(batch, self.device)
-
         generated = self.model(**batch)
-        if type(generated) is dict:
-            batch.update(generated)
-        else:
-            raise ValueError
-        desc = self.model.descriminate(generated=batch["pred_audio"].detach(), real=batch["real_audio"])
-        if type(desc) is dict:
-            batch.update(desc)
-        else:
-            raise ValueError
-            
+        batch.update(generated)
+        desc = self.model._descriminator(generated=batch["pred_audio"].detach(), real=batch["real_audio"])
+        batch.update(desc)
 
         if is_train:
             self.desc_optimizer.zero_grad()
-            DescLoss = self.desc_criterion(**batch)
-            DescLoss.backward()
+            desc_loss = self.desc_loss(**batch)
+            desc_loss["DescLoss"].backward()
+            
             self.train_metrics.update("Desc_grad_norm", self.get_grad_norm("Desc"))
+            self._clip_grad_norm()
             self.desc_optimizer.step()
 
-            d_outputs = self.model.descriminate(generated=batch["pred_audio"],
-                                                real=batch["real_audio"])
+            self.gen_optimizer.zero_grad()
+            d_outputs = self.model._descriminator(generated=batch["pred_audio"], real=batch["real_audio"])
             batch.update(d_outputs)
 
-            GenLoss, AdversarialLoss, FeatureMatchingLoss, MelLoss = self.gen_criterion(**batch)
-            GenLoss.backward()
+            gen_loss = self.gen_loss(**batch)
+            gen_loss["GenLoss"].backward()
+
             self.train_metrics.update("Gen_grad_norm", self.get_grad_norm('Gen'))
+            self._clip_grad_norm()
             self.gen_optimizer.step()
 
-            batch["GenLoss"] = GenLoss
-            batch["DescLoss"] = DescLoss
-            batch["AdversarialLoss"] = AdversarialLoss
-            batch["FeatureMatchingLoss"] = FeatureMatchingLoss 
-            batch["MelLoss"] = MelLoss
+            batch.update(gen_loss)
+            batch.update(desc_loss)
 
-            metrics.update("GenLoss", batch["GenLoss"].item())
-            metrics.update("DescLoss", batch["DescLoss"].item())
-            metrics.update("AdversarialLoss", batch["AdversarialLoss"].item())
-            metrics.update("FeatureMatchingLoss", batch["FeatureMatchingLoss"].item())
-            metrics.update("MelLoss", batch["MelLoss"].item())
-        else:
-            metrics.update("loss", 0) # we do not count loss in eval mode
+            for key in self.loss_keys:
+                metrics.update(key, batch[key].item())
         return batch
            
     def _log_predictions(

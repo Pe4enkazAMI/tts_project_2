@@ -1,4 +1,4 @@
-from .scale_disc import ScaleDisctiminator
+from .scale_disc import ScaleDiscriminator
 import torch.nn as nn
 
 class MultiScaleDiscriminator(nn.Module):
@@ -6,9 +6,9 @@ class MultiScaleDiscriminator(nn.Module):
         super().__init__()
 
         self.scale_discriminators = nn.ModuleList([
-            ScaleDisctiminator(norm=True),
-            ScaleDisctiminator(),
-            ScaleDisctiminator()
+            ScaleDiscriminator(norm=True),
+            ScaleDiscriminator(),
+            ScaleDiscriminator()
         ])
 
         self.avgpool1 = nn.AvgPool1d(4, 2, padding=2)

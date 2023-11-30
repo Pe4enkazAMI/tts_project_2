@@ -1,65 +1,38 @@
-import json
-import logging
-import os
-import shutil
-from curses.ascii import isascii
-from pathlib import Path
-import random
+import time
+from tqdm.auto import tqdm
 import torchaudio
-ROOT_PATH = Path(__file__).absolute().resolve().parent.parent.parent
-import numpy as np
-from speechbrain.utils.data_utils import download_file
-from tqdm import tqdm
-
-logger = logging.getLogger(__name__)
-
-URL_LINKS = {
-    "dataset": "https://data.keithito.com/data/speech/LJSpeech-1.1.tar.bz2", 
-}
+import os
+from pathlib import Path
+import torch
+import random
+from hw_tts.preproc import MelSpectrogramConfig, MelSpectrogram
 
 
-class LJspeechDataset():
-    def __init__(self, data_dir=None, *args, **kwargs):
-        if data_dir is None:
-            data_dir = ROOT_PATH / "data" / "datasets" / "ljspeech"
-            data_dir.mkdir(exist_ok=True, parents=True)
-            self._data_dir = data_dir
-            self._load_dataset()
-        self._data_dir = data_dir
-        self.data = os.listdir(self._data_dir)
-        self.max_audio_length = kwargs["max_audio_length"]
-        self.data = self.data[:kwargs["limit"]]
+class LJspeechDataset:
+    def __init__(self, data_dir, wav_max_len=8192, limit=None, **kwargs):
+        data_path = Path(data_dir)
+        self.paths = []
 
-    def _load_dataset(self):
-        arch_path = self._data_dir / "LJSpeech-1.1.tar.bz2"
-        print(f"Loading LJSpeech")
-        download_file(URL_LINKS["dataset"], arch_path)
-        shutil.unpack_archive(arch_path, self._data_dir)
-        for fpath in (self._data_dir / "LJSpeech-1.1").iterdir():
-            shutil.move(str(fpath), str(self._data_dir / fpath.name))
-        os.remove(str(arch_path))
-        shutil.rmtree(str(self._data_dir / "LJSpeech-1.1"))
+        for wav_path in data_path.iterdir():
+            self.paths.append(wav_path)
 
-    def load_audio(self, path):
-        audio_tensor, sr = torchaudio.load(path)
-        audio_tensor = audio_tensor[0:1, :]  # remove all channels but the first
-        target_sr = 22050
-        if sr != target_sr:
-            audio_tensor = torchaudio.functional.resample(audio_tensor, sr, target_sr)
-        return audio_tensor    
+        if limit is not None:
+            self.paths = self.paths[:limit]
 
+        mel_spec_config = MelSpectrogramConfig()
+        self.mel_spec_transform = MelSpectrogram(mel_spec_config)
+        self.wav_max_len = wav_max_len
 
-    def __getitem__(self, id):
-        audio_path = self.data[id]
-        audio_wave = self.load_audio(Path(self._data_dir) / Path(audio_path))
-        if audio_wave.shape[-1] > self.max_audio_length:
-            random_start = np.random.randint(0, audio_wave.shape[-1] - self.max_audio_length + 1)
-            audio_wave = audio_wave[..., random_start:random_start+self.max_audio_length]
-
+    def __getitem__(self, index):
+        wav_gt, _ = torchaudio.load(self.paths[index])
+        if self.wav_max_len is not None:
+            start_pos = random.randint(0, wav_gt.shape[-1] - self.wav_max_len)
+            wav_gt = wav_gt[..., start_pos: start_pos + self.wav_max_len]
+        mel_gt = self.mel_spec_transform(wav_gt.detach()).squeeze(0)
         return {
-            "audio": audio_wave,
-            "audio_length": audio_wave.shape[-1],
+            "audio": wav_gt,
+            "spectrogram": mel_gt
         }
-    
+
     def __len__(self):
-        return len(self.data)
+        return len(self.paths)

@@ -29,7 +29,7 @@ class MyanFi(nn.Module):
     def generate(self, **batch):
         return self.forward(**batch)
 
-    def descriminate(self, generated, real):
+    def _descriminator(self, generated, real):
         return self.descriminator(generated, real)
     
     def __str__(self):

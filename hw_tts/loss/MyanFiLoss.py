@@ -50,7 +50,10 @@ class GenLoss(nn.Module):
 
         GenLoss = adv_loss + self.alpha * fm_loss + self.beta * mel_loss
 
-        return GenLoss, adv_loss, fm_loss, mel_loss
+        return {"GenLoss" : GenLoss, 
+                "AdversarialLoss": adv_loss, 
+                "FeatureMatchingLoss": fm_loss, 
+                "MelLoss": mel_loss}
         
 
 class DescLoss(nn.Module):
@@ -71,5 +74,5 @@ class DescLoss(nn.Module):
         for scale_real, scale_gen in zip(scale_real_outs, scale_gen_outs):
             DescLoss = DescLoss + torch.mean((scale_real - 1) ** 2) + torch.mean((scale_gen - 0) ** 2)
 
-        return DescLoss
+        return {"DescLoss": DescLoss}
                 

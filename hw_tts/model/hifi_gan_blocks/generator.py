@@ -11,7 +11,7 @@ class Generator(nn.Module):
         super().__init__()
 
         self.in_proj = nn.Conv1d(input_channels, hidden_channels, 7, 
-                                  padding= (7 - 1) // 2  )
+                                  padding=3)
 
         blocks = []
         current_channels = hidden_channels
@@ -34,7 +34,7 @@ class Generator(nn.Module):
         self.out_proj = nn.Sequential(
             nn.LeakyReLU(),
             nn.Conv1d(current_channels, 1, 7, 
-                      padding= (7 - 1) // 2),
+                      padding=3),
             nn.Tanh()
         )
 

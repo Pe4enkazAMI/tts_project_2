@@ -2,7 +2,7 @@ import torch.nn as nn
 from torch.nn.utils import weight_norm
 
 
-class ScaleDisctiminator(nn.Module):
+class ScaleDiscriminator(nn.Module):
     def __init__(self, norm=False):
         super().__init__()
         convs = [

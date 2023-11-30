@@ -35,9 +35,8 @@ class SubBlock(nn.Module):
     def forward(self, x):
         res = 0
         for layer in self.block:
-            res = layer(x)
-            x = x + res
-        return x
+            res = res + layer(x)
+        return res
     
 class MRF(nn.Module):
     def __init__(self, channels, resblock_kernels, resblock_dilations) -> None:
@@ -51,7 +50,6 @@ class MRF(nn.Module):
     def forward(self, x):
         res = 0
         for layer in self.resblocks:
-            res = layer(x)
-            x = x + res
-        return x
+            res = res + layer(x)
+        return res
 

@@ -23,9 +23,8 @@
                 {
                     "type": "LJspeechDataset",
                     "args": {
-                        "part": "train",
-                        "max_audio_length": 8192,
-                        "data_dir": "/kaggle/input/ljspeech/wavs"
+                        "data_dir": "/kaggle/input/ljspeech/LJSpeech-1.1/wavs",
+                        "limit":5
                     }
                 }
             ]
@@ -70,7 +69,7 @@
     "trainer": {
         "epochs": 3000,
         "save_dir": "saved/",
-        "save_period": 1,
+        "save_period": 1000,
         "verbosity": 2,
         "monitor": "off",
         "early_stop": 500,
@@ -78,8 +77,8 @@
         "wandb_project": "MyanFi_project",
         "run_name": "MyanFiOneBatch",
         "sample_rate": 22050,
-        "len_epoch": 465,
+        "len_epoch": 10,
         "log_step": 50,
-        "grad_norm_clip": 100000
+        "grad_norm_clip": 10000
     }
 }
