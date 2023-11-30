@@ -1,8 +1,65 @@
 import torch
 import torch.nn as nn 
 import torch.nn.functional as F
-from .utils import MRF
+#from .utils import MRF
+from torch.nn.utils import weight_norm
+from torch import nn
+def get_conv_padding_size(kernel, stride, dillation):
+    """
+    Counts padding for Conv1d based on kernel, stride, and dillation
+    So the length of output of Conv layer is the same to input one 
+    """
+    if stride == 1:
+        return dillation * (kernel - 1) // 2
+    else:
+        raise NotImplementedError()
 
+class MRFBlock(nn.Module):
+    def __init__(self, channels, kernel,  dilations):
+        super().__init__()
+
+        self.kernel = kernel
+        self.dilations = dilations
+
+        layers = []
+
+        for m in range(len(dilations)):
+            layer = nn.Sequential(
+                nn.LeakyReLU(),
+                weight_norm(nn.Conv1d(channels, channels, kernel_size=kernel, 
+                          dilation=dilations[m], 
+                          padding=get_conv_padding_size(kernel, 1, dilations[m]))),
+                nn.LeakyReLU(),
+                weight_norm(nn.Conv1d(channels, channels, kernel_size=kernel, 
+                          dilation=1, 
+                          padding=get_conv_padding_size(kernel, 1, 1))),
+            )
+            layers.append(layer)
+        
+        self.block = nn.ModuleList(layers)
+
+    def forward(self, x):
+        result = 0
+        for layer in self.block:
+            result = result + layer(x)
+        return result
+
+
+class MRF(nn.Module):
+    def __init__(self, channels, resblock_kernels, resblock_dilations):
+        super().__init__()
+
+        resblocks = []
+        for i in range(len(resblock_kernels)):
+            resblocks.append(MRFBlock(channels, resblock_kernels[i], resblock_dilations[i]))
+
+        self.resblocks = nn.ModuleList(resblocks)
+
+    def forward(self, x):
+        result = 0
+        for block in self.resblocks:
+            result = result + block(x)
+        return result
 
 class Generator(nn.Module):
     def __init__(self, input_channels, hidden_channels, upsample_kernels,

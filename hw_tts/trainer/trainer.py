@@ -153,42 +153,35 @@ class Trainer(BaseTrainer):
     
     def process_batch(self, batch, is_train: bool, metrics: MetricTracker):
         batch = self.move_batch_to_device(batch, self.device)
-        self.gen_optimizer.zero_grad()
         generated = self.model(**batch)
-        gen_spec = self.mels___(generated["pred_audio"])
-        loss = self.test_losssss(gen_spec, batch["spectrogram"])
-        loss.backward
-        metrics.update("MelLoss", loss)
-        self.train_metrics.update("Gen_grad_norm", self.get_grad_norm('Gen'))
-        self.gen_optimizer.step()
 
-        # batch.update(generated)
-        # desc = self.model._descriminator(generated=batch["pred_audio"].detach(), real=batch["real_audio"])
-        # batch.update(desc)
+        batch.update(generated)
+        desc = self.model._descriminator(generated=batch["pred_audio"].detach(), real=batch["real_audio"])
+        batch.update(desc)
 
-        # if is_train:
-        #     self.desc_optimizer.zero_grad()
-        #     desc_loss = self.desc_loss(**batch)
-        #     desc_loss["DescLoss"].backward()
+        if is_train:
+            self.desc_optimizer.zero_grad()
+            desc_loss = self.desc_loss(**batch)
+            desc_loss["DescLoss"].backward()
             
-        #     self.train_metrics.update("Desc_grad_norm", self.get_grad_norm("Desc"))
-        #     self.desc_optimizer.step()
+            self.train_metrics.update("Desc_grad_norm", self.get_grad_norm("Desc"))
+            self.desc_optimizer.step()
 
-        #     self.gen_optimizer.zero_grad()
-        #     d_outputs = self.model._descriminator(generated=batch["pred_audio"], real=batch["real_audio"])
-        #     batch.update(d_outputs)
+            self.gen_optimizer.zero_grad()
+            d_outputs = self.model._descriminator(generated=batch["pred_audio"], real=batch["real_audio"])
+            batch.update(d_outputs)
 
-        #     gen_loss = self.gen_loss(**batch)
-        #     gen_loss["GenLoss"].backward()
+            gen_loss = self.gen_loss(**batch)
+            gen_loss["GenLoss"].backward()
 
-        #     self.train_metrics.update("Gen_grad_norm", self.get_grad_norm('Gen'))
-        #     self.gen_optimizer.step()
+            self.train_metrics.update("Gen_grad_norm", self.get_grad_norm('Gen'))
+            self.gen_optimizer.step()
 
-        #     batch.update(gen_loss)
-        #     batch.update(desc_loss)
+            batch.update(gen_loss)
+            batch.update(desc_loss)
 
-        #     for key in self.loss_keys:
-        #         metrics.update(key, batch[key].item())
+            for key in self.loss_keys:
+                metrics.update(key, batch[key].item())
         return batch
            
     def _log_predictions(

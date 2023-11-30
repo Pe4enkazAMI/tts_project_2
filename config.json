@@ -17,33 +17,32 @@
     },
     "data": {
         "train": {
-            "batch_size": 5,
+            "batch_size": 6,
             "num_workers": 6,
             "datasets": [
                 {
                     "type": "LJspeechDataset",
                     "args": {
-                        "data_dir": "/kaggle/input/ljspeech/LJSpeech-1.1/wavs",
-                        "limit":5
+                        "data_dir": "/kaggle/input/ljspeech/LJSpeech-1.1/wavs"
                     }
                 }
             ]
         }
     },
     "gen_optimizer": {
-        "type": "Adam",
+        "type": "AdamW",
         "args": {
             "lr": 2e-4,
-            "weight_decay": 0.0,
-            "betas": [0.5, 0.9]
+            "weight_decay": 0.01,
+            "betas": [0.8, 0.99]
         }
     },
     "dec_optimizer": {
-        "type": "Adam",
+        "type": "AdamW",
         "args": {
             "lr": 2e-4,
-            "weight_decay": 0.0,
-            "betas": [0.5, 0.99]
+            "weight_decay": 0.01,
+            "betas": [0.8, 0.99]
         }
     },
     "GenLoss": {
@@ -75,9 +74,9 @@
         "early_stop": 500,
         "visualize": "wandb",
         "wandb_project": "MyanFi_project",
-        "run_name": "MyanFiOneBatch",
+        "run_name": "MyanFi_FirstRun",
         "sample_rate": 22050,
-        "len_epoch": 10,
+        "len_epoch": 1000,
         "log_step": 50,
         "grad_norm_clip": 10000
     }
