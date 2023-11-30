@@ -162,7 +162,6 @@ class Trainer(BaseTrainer):
             desc_loss["DescLoss"].backward()
             
             self.train_metrics.update("Desc_grad_norm", self.get_grad_norm("Desc"))
-            self._clip_grad_norm()
             self.desc_optimizer.step()
 
             self.gen_optimizer.zero_grad()
@@ -173,7 +172,6 @@ class Trainer(BaseTrainer):
             gen_loss["GenLoss"].backward()
 
             self.train_metrics.update("Gen_grad_norm", self.get_grad_norm('Gen'))
-            self._clip_grad_norm()
             self.gen_optimizer.step()
 
             batch.update(gen_loss)
