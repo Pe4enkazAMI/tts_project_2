@@ -31,19 +31,19 @@
         }
     },
     "gen_optimizer": {
-        "type": "AdamW",
+        "type": "Adam",
         "args": {
             "lr": 2e-4,
-            "weight_decay": 0.01,
-            "betas": [0.8, 0.99]
+            "weight_decay": 0.0,
+            "betas": [0.5, 0.9]
         }
     },
     "dec_optimizer": {
-        "type": "AdamW",
+        "type": "Adam",
         "args": {
             "lr": 2e-4,
-            "weight_decay": 0.01,
-            "betas": [0.8, 0.99]
+            "weight_decay": 0.0,
+            "betas": [0.5, 0.99]
         }
     },
     "GenLoss": {
@@ -55,15 +55,15 @@
         "args": {}
     },
     "gen_lr_scheduler": {
-        "type": "ExponentialLR",
+        "type": "MultiStepLR",
         "args": {
-            "gamma": 0.999
+            "gamma": 0.5
         }
     },
     "desc_lr_scheduler": {
-        "type": "ExponentialLR",
+        "type": "MultiStepLR",
         "args": {
-            "gamma": 0.999
+            "gamma": 0.5
         }
     },
     "trainer": {
