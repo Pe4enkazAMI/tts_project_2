@@ -23,7 +23,7 @@
                 {
                     "type": "LJspeechDataset",
                     "args": {
-                        "data_dir": "/Users/bayesian_monster/tts_project2/data/datasets/ljspeech/wavs",
+                        "data_dir": "/kaggle/input/ljspeech/LJSpeech-1.1/wavs",
                         "limit":5
                     }
                 }
