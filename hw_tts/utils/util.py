@@ -2,8 +2,9 @@ import json
 from collections import OrderedDict
 from itertools import repeat
 from pathlib import Path
-
+from hw_tts.preproc import MelSpectrogram
 import torch
+import torchaudio
 
 import pandas as pd
 import torch
@@ -88,3 +89,17 @@ class MetricTracker:
 def get_param_num(model):
     num_param = sum(param.numel() for param in model.parameters())
     return num_param
+
+
+def get_data(sample_rate):
+    mel_spec = MelSpectrogram()
+    data_list = []
+    for i in range(1, 4):
+        file_path = f"/Users/bayesian_monster/tts_project2/test_audio/audio_{i}.wav"
+        audio_tensor, sr = torchaudio.load(file_path)
+        audio_tensor = audio_tensor[0:1, :]
+        if sr != sample_rate:
+            audio_tensor = torchaudio.functional.resample(audio_tensor, sr, sample_rate)
+
+        data_list.append(mel_spec(audio_tensor))
+    return data_list

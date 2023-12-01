@@ -11,6 +11,7 @@ from torch.nn.utils import clip_grad_norm_
 from torchvision.transforms import ToTensor
 from tqdm import tqdm
 from hw_tts.preproc import MelSpectrogram
+from hw_tts.utils.util import get_data
 
 
 class Trainer(BaseTrainer):
@@ -47,6 +48,7 @@ class Trainer(BaseTrainer):
         self.skip_oom = skip_oom
         self.config = config
         self.train_dataloader = dataloaders["train"]
+        self.device = device
         if len_epoch is None:
             # epoch-based training
             self.len_epoch = len(self.train_dataloader)
@@ -66,8 +68,7 @@ class Trainer(BaseTrainer):
             "GenLoss", "DescLoss", "AdversarialLoss", "FeatureMatchingLoss",
             "MelLoss", "Gen_grad_norm", "Desc_grad_norm", writer=self.writer
         )
-        self.mels___ = MelSpectrogram()
-        self.test_losssss = torch.nn.functional.l1_loss
+        self.mels___ = MelSpectrogram().to(device)
 
     @staticmethod
     def move_batch_to_device(batch, device: torch.device):
@@ -149,6 +150,7 @@ class Trainer(BaseTrainer):
         if batch['pred_audio'].shape[0] > 1:
             self._log_audio(batch['pred_audio'][1], 22050, 'AudioSyntTrain_1.wav')
 
+        self.synt(self.model, 22050)
         return log
     
     def process_batch(self, batch, is_train: bool, metrics: MetricTracker):
@@ -183,6 +185,14 @@ class Trainer(BaseTrainer):
             for key in self.loss_keys:
                 metrics.update(key, batch[key].item())
         return batch
+    
+    def synt(self):
+        self.model.eval()
+        data = get_data(22050)
+        for i, mel in enumerate(data):
+            generated = self.model(mel.to(self.device))["pred_audio"].squeeze(0)
+            generated = generated.detach().cpu().numpy()
+            self._log_audio(generated, 22050, f"test_{i}")
            
     def _log_predictions(
             self,
