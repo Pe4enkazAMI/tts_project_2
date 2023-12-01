@@ -205,21 +205,22 @@ class BaseTrainer:
         self.model.load_state_dict(checkpoint["state_dict"])
 
         # load optimizer state from checkpoint only when optimizer type is not changed.
-        if (
-                checkpoint["config"]["gen_optimizer"] != self.config["gen_optimizer"] or
-                checkpoint["config"]["gen_lr_scheduler"] != self.config["gen_lr_scheduler"] or
-                checkpoint["config"]["desc_lr_scheduler"] != self.config["desc_lr_scheduler"] or
-                checkpoint["config"]["desc_optimizer"] != self.config["desc_optimizer"]
-        ):
-            self.logger.warning(
-                "Warning: Optimizer or lr_scheduler given in config file is different "
-                "from that of checkpoint. Optimizer parameters not being resumed."
-            )
-        else:
-            self.gen_optimizer.load_state_dict(checkpoint["gen_optimizer"])
-            self.desc_optimizer.load_state_dict(checkpoint["desc_optimizer"])
-            self.gen_scheduler.load_state_dict(checkpoint["gen_scheduler"])
-            self.desc_scheduler.load_state_dict(checkpoint["desc_scheduler"])
+        if not self.config["finetune"]:
+            if (
+                    checkpoint["config"]["gen_optimizer"] != self.config["gen_optimizer"] or
+                    checkpoint["config"]["gen_lr_scheduler"] != self.config["gen_lr_scheduler"] or
+                    checkpoint["config"]["desc_lr_scheduler"] != self.config["desc_lr_scheduler"] or
+                    checkpoint["config"]["desc_optimizer"] != self.config["dec_optimizer"]
+            ):
+                self.logger.warning(
+                    "Warning: Optimizer or lr_scheduler given in config file is different "
+                    "from that of checkpoint. Optimizer parameters not being resumed."
+                )
+            else:
+                self.gen_optimizer.load_state_dict(checkpoint["gen_optimizer"])
+                self.desc_optimizer.load_state_dict(checkpoint["desc_optimizer"])
+                self.gen_scheduler.load_state_dict(checkpoint["gen_scheduler"])
+                self.desc_scheduler.load_state_dict(checkpoint["desc_scheduler"])
 
         self.logger.info(
             "Checkpoint loaded. Resume training from epoch {}".format(self.start_epoch)

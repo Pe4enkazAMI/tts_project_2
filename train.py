@@ -49,7 +49,7 @@ def main(config):
     desc_params = model.descriminator.parameters()
     gen_optimizer = config.init_obj(config["gen_optimizer"], torch.optim, gen_params)
     gen_lr_scheduler = config.init_obj(config["gen_lr_scheduler"], torch.optim.lr_scheduler, gen_optimizer)
-    desc_optimizer = config.init_obj(config["gen_optimizer"], torch.optim, desc_params)
+    desc_optimizer = config.init_obj(config["dec_optimizer"], torch.optim, desc_params)
     desc_lr_scheduler = config.init_obj(config["desc_lr_scheduler"], torch.optim.lr_scheduler, desc_optimizer)
 
     trainer = Trainer(
