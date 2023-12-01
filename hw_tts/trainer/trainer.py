@@ -150,7 +150,7 @@ class Trainer(BaseTrainer):
         if batch['pred_audio'].shape[0] > 1:
             self._log_audio(batch['pred_audio'][1], 22050, 'AudioSyntTrain_1.wav')
 
-        self.synt(self.model, 22050)
+        self.synt()
         return log
     
     def process_batch(self, batch, is_train: bool, metrics: MetricTracker):
