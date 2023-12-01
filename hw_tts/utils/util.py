@@ -95,7 +95,7 @@ def get_data(sample_rate):
     mel_spec = MelSpectrogram()
     data_list = []
     for i in range(1, 4):
-        file_path = f"/kaggle/working/tts_project2/test_audio/audio_{i}.wav"
+        file_path = f"/kaggle/input/test-audio/audio_{i}.wav"
         audio_tensor, sr = torchaudio.load(file_path)
         audio_tensor = audio_tensor[0:1, :]
         if sr != sample_rate:
