@@ -99,5 +99,4 @@ class Generator(nn.Module):
         mel = self.in_proj(mel)
         mel = self.blocks(mel)
         audio = self.out_proj(mel)
-        print(audio)
         return {"pred_audio": audio}
