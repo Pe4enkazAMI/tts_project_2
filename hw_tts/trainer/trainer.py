@@ -191,7 +191,6 @@ class Trainer(BaseTrainer):
         data = get_data(22050)
         for i, mel in enumerate(data):
             generated = self.model(mel.to(self.device))["pred_audio"].squeeze(0)
-            generated = generated.detach().cpu().numpy()
             self._log_audio(generated, 22050, f"test_{i}")
            
     def _log_predictions(
