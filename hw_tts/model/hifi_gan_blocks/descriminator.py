@@ -2,6 +2,7 @@ import torch.nn as nn
 from .multi_period_descrominator import MultiPeriodDescriminator
 from .multi_scale_disc import MultiScaleDiscriminator
 import torch
+import torch.nn.functional as F
 
 class Descriminator(nn.Module):
     def __init__(self):
@@ -13,8 +14,7 @@ class Descriminator(nn.Module):
     def forward(self, generated, real):
         if generated.shape[-1] > real.shape[-1]:
             pad_amount = generated.shape[-1] - real.shape[-1]
-            pad = torch.zeros((real.shape[0], real.shape[1], pad_amount), device=real.device)
-            real = torch.cat([real, pad], dim=-1)
+            real = F.pad(real, (0, pad_amount))
 
         p_real_outs, p_gen_outs, p_real_feat, p_gen_feat = self.mpd(generated, real)
         s_real_outs, s_gen_outs,s_real_feat, s_gen_feat = self.msd(generated, real)

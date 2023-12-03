@@ -1,18 +1,11 @@
 import torch
 import torch.nn as nn 
 import torch.nn.functional as F
-#from .utils import MRF
 from torch.nn.utils import weight_norm
 from torch import nn
-def get_conv_padding_size(kernel, stride, dillation):
-    """
-    Counts padding for Conv1d based on kernel, stride, and dillation
-    So the length of output of Conv layer is the same to input one 
-    """
-    if stride == 1:
-        return dillation * (kernel - 1) // 2
-    else:
-        raise NotImplementedError()
+
+def padding_size(kernel, stride, dillation):
+    return dillation * (kernel - 1) // 2
 
 class MRFBlock(nn.Module):
     def __init__(self, channels, kernel,  dilations):
@@ -28,11 +21,11 @@ class MRFBlock(nn.Module):
                 nn.LeakyReLU(),
                 weight_norm(nn.Conv1d(channels, channels, kernel_size=kernel, 
                           dilation=dilations[m], 
-                          padding=get_conv_padding_size(kernel, 1, dilations[m]))),
+                          padding=padding_size(kernel, 1, dilations[m]))),
                 nn.LeakyReLU(),
                 weight_norm(nn.Conv1d(channels, channels, kernel_size=kernel, 
                           dilation=1, 
-                          padding=get_conv_padding_size(kernel, 1, 1))),
+                          padding=padding_size(kernel, 1, 1))),
             )
             layers.append(layer)
         
